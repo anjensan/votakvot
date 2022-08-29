@@ -154,10 +154,11 @@ def _plainify_dict_rec(d, res, prefix):
         return d
 
     for k, v in d.items():
+        ks = str(k)
         if isinstance(v, Mapping) or dataclasses.is_dataclass(v):
-            _plainify_dict_rec(v, res, prefix=(prefix + k + "."))
+            _plainify_dict_rec(v, res, prefix=(prefix + ks + "."))
         else:
-            res[prefix + k] = v
+            res[prefix + ks] = v
 
 
 def plainify_dict(d: Dict) -> Dict:
