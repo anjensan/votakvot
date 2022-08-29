@@ -293,3 +293,5 @@ See `votakvot-ab --help` for all parameters.
 ## License
 
 *Votakvot* is released under the Apache 2.0 license (see [LICENSE](LICENSE))
+
+It is based on a project developed by Allegro https://github.com/allegro/votakvot
