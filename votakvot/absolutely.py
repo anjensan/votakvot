@@ -77,11 +77,13 @@ class StatsCollector:
         warmup: int = 0,
         max_errors: int = 0,
         lock = None,
+        metrics: bool = False,
     ):
         self._lock = lock or contextlib.nullcontext()
         self._warmup = warmup
         self._started = time.time()
         self._finished = None
+        self.metrics = metrics
         self.tracker = tracker
         self.results = collections.Counter()
         self.errors = collections.Counter()
@@ -108,11 +110,12 @@ class StatsCollector:
         self.total_count += 1
         self.results[result] += 1
 
-        self.tracker.meter({
-            'duration': duration,
-            'result': result,
-            'error': repr(error) if error else None,
-        })
+        if self.metrics:
+            self.tracker.meter({
+                'duration': duration,
+                'result': result,
+                'error': repr(error) if error else None,
+            })
         if duration is not None:
             self.times_all.append(duration)
             self.total_time += duration
@@ -230,6 +233,7 @@ def run(
     strict=False,
     max_errors=None,
     concurrency_env=None,
+    metrics=False,
 ):
 
     assert number is None or duration is None
@@ -260,6 +264,7 @@ def run(
             warmup=warmup,
             max_errors=max_errors,
             lock=concurrency_env.global_lock,
+            metrics=metrics,
         )
 
         def call():
@@ -309,6 +314,7 @@ def main(args=None):
     parser.add_argument("-p", "--path", help="Path to results storage", type=str, default=".")
     parser.add_argument("-t", "--tid", help="Tid identifier", default=None)
     parser.add_argument("-g", "--gevent", help="Patch sockets with Gevent", action='store_true', default=False)
+    parser.add_argument("-m", "--metrics", help="Write results as metrics", default=False, action='store_true')
 
     parser.add_argument("-s", "--strict", help="Fail on a first error", action='store_true')
     parser.add_argument("--max-errors", help="Max number of captured errors", type=int, default=100)
@@ -376,6 +382,7 @@ def main(args=None):
         strict=opts.strict,
         max_errors=opts.max_errors,
         concurrency_env=concurrency_env,
+        metrics=opts.metrics,
     )
 
     try:
